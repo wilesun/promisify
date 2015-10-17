@@ -1,0 +1,26 @@
+{
+  "name": "promisify",
+  "version": "0.0.1",
+  "description": "promise's some extension",
+  "main": "promisify.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wilesun/promisify.git"
+  },
+  "keywords": [
+    "promise",
+    "promisify"
+  ],
+  "author": "wilesun@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wilesun/promisify/issues"
+  },
+  "homepage": "https://github.com/wilesun/promisify#readme",
+  "dependencies": {
+    "lodash": "^3.10.1"
+  }
+}
