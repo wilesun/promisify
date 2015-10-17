@@ -122,6 +122,13 @@ Promise.on = function(ctx, events) {
       ctx[event.name] = function() {
         return event.isReject?reject(arguments):resolve(arguments);
       }
-    })
+    });
   });
+}
+
+Promise.off = function(ctx, evnents) {
+  lodash.each(events, function(event) {
+    ctx[event.name] = null;
+    delete ctx[event.name];
+  })
 }
