@@ -115,3 +115,11 @@ Promise.eachSeries = function(array, func) {
     return Promise.all(items);
   });
 };
+
+Promise.assertTrue = function(expr, errMsg) {
+  return expr ? Promise.resolve() : Promise.reject(errMsg);
+}
+
+Promise.assertNull = function(expr, errMsg) {
+  return expr == null ? Promise.resolve() : Promise.reject(expr + errMsg);
+}
