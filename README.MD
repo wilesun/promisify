@@ -1,1 +1,1 @@
-收集的promise的有用扩展
+promise的有用扩展
