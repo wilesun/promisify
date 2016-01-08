@@ -105,13 +105,101 @@ Promise.allCatch = function (promises) {
     })).then(function (result) {
         var errors = result.map(function (r) {
             return r.error;
-        })
+        });
         if (lodash.reject(errors, lodash.isUndefined).length > 0) {
             return Promise.reject(errors);
         }
         return lodash.pluck(result, 'value');
     });
 };
+
+var EventEmiter = function () {
+    var _events = {};
+
+    function addChain(event, options, func) {
+        if (typeof(options) == 'function') {
+            func = options;
+            options = {};
+        }
+        var judgers = _events[event];
+        if (!judgers) {
+            judgers = [];
+            _events[event] = judgers;
+        }
+        func.order = options.order;
+        judgers.push(func);
+        judgers = lodash.sortBy(judgers, function (judger) {
+            return judger.order && judger.order.last ? 1 : 0;
+        });
+        _events[event] = judgers;
+        return function () {
+            var index = _events[event].indexOf(func);
+            if (index >= 0)
+                _events[event].splice(index, 1);
+        };
+    }
+
+    function clearChain(events) {
+        lodash.forEach(arguments, function (event) {
+            delete _events[event];
+        });
+    }
+
+    function callAsyncChain(event, args) {
+        var judgers = _events[event];
+        if (!judgers) {
+            return Promise.resolve();
+        }
+        var self = this;
+        return Promise.eachSeries(judgers, function (judger) {
+            return judger.apply(self, (args || []));
+        });
+    }
+
+    function callAsyncOrChain(event, args) {
+        var judgers = _events[event];
+        if (!judgers) {
+            return Promise.resolve(false);
+        }
+        var self = this;
+        var seq = judgers.reduce(function (seq, judger) {
+            return seq.then(function (result) {
+                if (result) {
+                    return result;
+                }
+                return judger.apply(self, args);
+            });
+        }, Promise.resolve(false));
+        return seq;
+    }
+
+    function callAsyncAndChain(event, args) {
+        var judgers = _events[event];
+        if (!judgers) {
+            return Promise.resolve(true);
+        }
+        var self = this;
+        var seq = judgers.reduce(function (seq, judger) {
+            return seq.then(function (result) {
+                if (!result) {
+                    return result;
+                }
+                return judger.apply(self, args);
+            });
+        }, Promise.resolve(true));
+        return seq;
+    }
+
+    return {
+        emit: callAsyncChain,
+        emitOr: callAsyncOrChain,
+        emitAnd: callAsyncAndChain,
+        on: addChain,
+        clear: clearChain
+    }
+};
+
+Promise.emitter = EventEmiter();
 
 Promise.prototype.callback = function (cb) {
     return this.then(function (data) {
